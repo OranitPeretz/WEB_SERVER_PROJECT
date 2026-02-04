@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home | YouTube Manager</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eaf6ff, #fdeaf2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .home-card {
+            background: white;
+            padding: 40px 48px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .home-card h2 {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .home-card .email {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .home-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-videos {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .btn-videos:hover {
+            background: #0b5ed7;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #bb2d3b;
+            color: white;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="home-card">
+    <div class="logo">🎬</div>
+
+    <h2>Welcome</h2>
+
+    <div class="email">
+        <%= user.username %>
+    </div>
+
+    <div class="home-actions">
+        <a href="/videos" class="btn btn-videos px-4">
+            ▶ Go to Videos
+        </a>
+
+        <a href="/logout" class="btn btn-logout px-4">
+            Logout
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

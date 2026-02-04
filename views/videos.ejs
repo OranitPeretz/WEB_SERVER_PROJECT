@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Manager</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eaf6ff, #fdeaf2);
+            overflow: hidden;
+        }
+
+        h2 { font-weight: 600; }
+
+        
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .user-email {
+            background: rgba(255,255,255,0.7);
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            background: #6c757d;
+        }
+
+        .icon-btn:hover {
+            background: #495057;
+            color: white;
+            text-decoration: none;
+        }
+
+        .icon-btn.logout {
+            background: #dc3545;
+        }
+
+        .icon-btn.logout:hover {
+            background: #bb2d3b;
+        }
+
+        
+        .page-wrapper {
+            height: calc(100vh - 140px);
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .section-scroll {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 10px;
+            padding-right: 6px;
+        }
+
+        .card {
+            border-radius: 14px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+        }
+
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .star-filled { color: #f5c518; }
+        .star-empty  { color: #ccc; }
+
+        .play-btn {
+            border: none;
+            background: #0d6efd;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn:hover {
+            background: #0b5ed7;
+        }
+    </style>
+</head>
+
+<body class="container-fluid px-4 pt-3">
+
+<%
+    const searchStateSafe = typeof searchState !== "undefined" ? searchState : null;
+    const currentSortBy   = typeof sortBy !== "undefined" ? sortBy : "title";
+    const currentOrder    = typeof order !== "undefined" ? order : "ASC";
+    const flashSafe       = typeof flash !== "undefined" ? flash : null;
+    const favIds          = favoriteVideoIds || [];
+    const userSafe        = typeof user !== "undefined" ? user : null;
+%>
+
+<div class="top-bar">
+    <span class="user-email">
+        📧 <%= userSafe ? userSafe.username : "Guest" %>
+    </span>
+
+    <a href="/home" class="icon-btn">🏠 Home</a>
+    <a href="/logout" class="icon-btn logout">🚪 Logout</a>
+</div>
+
+<h2 class="mb-2">🎬 YouTube Manager</h2>
+
+<% if (flashSafe) { %>
+    <div class="alert alert-success text-center py-1 mb-2">
+        <%= flashSafe %>
+    </div>
+<% } %>
+
+<div class="page-wrapper">
+
+<div class="section">
+    <h4>🔍 Search YouTube</h4>
+
+    <form method="POST" action="/videos/search" class="mb-2">
+        <input name="query" class="form-control"
+               placeholder="Search for videos..."
+               value="<%= searchStateSafe ? searchStateSafe.query : '' %>"
+               required>
+        <button class="btn btn-primary mt-2">Search</button>
+    </form>
+
+    <div class="section-scroll" id="search-scroll">
+        <% if (results && results.length > 0) { %>
+            <% results.forEach(v => {
+                const isSaved = favIds.includes(v.videoId);
+            %>
+                <div class="card mb-3 p-3 d-flex align-items-center flex-row">
+                    <img src="<%= v.thumbnail %>" class="me-3">
+
+                    <strong class="flex-grow-1"><%= v.title %></strong>
+
+                    <button
+                        type="button"
+                        class="play-btn me-2"
+                        title="Play"
+                        onclick="playVideo('<%= v.videoId %>')">
+                        ▶
+                    </button>
+
+                    <form method="POST" action="/videos/add">
+                        <input type="hidden" name="videoId" value="<%= v.videoId %>">
+                        <input type="hidden" name="title" value="<%= v.title %>">
+                        <input type="hidden" name="thumbnail" value="<%= v.thumbnail %>">
+
+                        <button
+                            class="btn btn-sm <%= isSaved ? 'btn-secondary' : 'btn-success' %>"
+                            <%= isSaved ? 'disabled' : '' %>>
+                            <%= isSaved ? 'Saved ✓' : 'Save' %>
+                        </button>
+                    </form>
+                </div>
+            <% }) %>
+
+            <% if (searchStateSafe && searchStateSafe.nextPageToken) { %>
+                <form method="POST" action="/videos/load-more" class="text-center">
+                    <button class="btn btn-outline-primary">Load more 🎥</button>
+                </form>
+            <% } %>
+        <% } else { %>
+            <p class="text-muted mt-3">Search for videos above 👆</p>
+        <% } %>
+    </div>
+</div>
+
+<div class="section">
+    <h4>⭐ Favorites</h4>
+
+    <form method="GET" action="/videos" class="d-flex gap-2 mb-2 align-items-center">
+        <select name="sortBy" class="form-select w-auto">
+            <option value="title"  <%= currentSortBy === "title"  ? "selected" : "" %>>Name</option>
+            <option value="rating" <%= currentSortBy === "rating" ? "selected" : "" %>>Rating</option>
+        </select>
+
+        <input type="hidden" name="order" value="<%= currentOrder %>">
+
+        <button type="submit" class="btn btn-outline-primary"
+            onclick="this.form.order.value =
+                this.form.order.value === 'ASC' ? 'DESC' : 'ASC';">
+            <%= currentOrder === "ASC" ? "⬆️" : "⬇️" %>
+        </button>
+
+        <button class="btn btn-outline-primary">Sort</button>
+    </form>
+
+    <div class="section-scroll">
+        <% if (!favorites || favorites.length === 0) { %>
+            <p class="text-muted">No favorite videos yet.</p>
+        <% } else { %>
+            <% favorites.forEach(f => { %>
+                <div class="card mb-3 p-3 d-flex align-items-center flex-row">
+                    <img src="<%= f.thumbnail %>" class="me-3">
+
+                    <strong class="flex-grow-1"><%= f.title %></strong>
+
+                    <button
+                        type="button"
+                        class="play-btn me-2"
+                        title="Play"
+                        onclick="playVideo('<%= f.video_id %>')">
+                        ▶
+                    </button>
+
+                    <form method="POST" action="/videos/rate/<%= f.id %>">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                            <button
+                                class="star-btn <%= i <= f.rating ? 'star-filled' : 'star-empty' %>"
+                                name="rating"
+                                value="<%= i %>">★</button>
+                        <% } %>
+                    </form>
+
+                    <form method="POST" action="/videos/delete/<%= f.id %>">
+                        <button class="btn btn-danger btn-sm ms-3">Delete</button>
+                    </form>
+                </div>
+            <% }) %>
+        <% } %>
+    </div>
+</div>
+
+</div>
+
+<div class="modal fade" id="videoModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Now Playing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body ratio ratio-16x9">
+                <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const videoModal = document.getElementById("videoModal");
+    const videoFrame = document.getElementById("videoFrame");
+
+    function playVideo(id) {
+        videoFrame.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+        new bootstrap.Modal(videoModal).show();
+    }
+
+    videoModal.addEventListener("hidden.bs.modal", () => {
+        videoFrame.src = "";
+    });
+
+    const searchScroll = document.getElementById("search-scroll");
+    if (searchScroll) {
+        const saved = sessionStorage.getItem("searchScrollTop");
+        if (saved) searchScroll.scrollTop = saved;
+
+        searchScroll.addEventListener("scroll", () => {
+            sessionStorage.setItem("searchScrollTop", searchScroll.scrollTop);
+        });
+    }
+</script>
+
+</body>
+</html>
